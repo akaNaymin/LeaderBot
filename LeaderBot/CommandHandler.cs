@@ -24,6 +24,9 @@ namespace LeaderBot
         {
             switch (i)
             {
+                case 0:
+                    i = 5;
+                    break;
                 case 1:
                     i = 4;
                     break;
@@ -40,7 +43,7 @@ namespace LeaderBot
             return (i);
         }
 
-        public static string ScoreToString(int score, RunType type, Character character)
+        public static string ScoreToString(int score, RunType type, Character character, bool amp)
         {
             string s = "";
             switch (type)
@@ -62,16 +65,20 @@ namespace LeaderBot
 
                 case RunType.Deathless:
                     int d = Digits(score);
+                    if (d < 3)
+                        d = 3;
                     for (; d < 5; d++)
                     {
                         s += " ";
                     }
                     int wins = score / 100;
                     score = score % 100;
-                    //if (!character.Equals("Aria"))
+                    if (!(character == Character.Aria))
                         return (s + wins + " (" + (score / 10 + 1) + "-" + (score % 10 + 1) + ")");
-                    //else
-                    //    return (s + wins + " (" + FlipZone(score / 10 + 1) + "-" + (score % 10 + 1) + ")");
+                    if (amp)
+                        return (s + wins + " (" + FlipZone(score / 10) + "-" + (score % 10 + 1) + ")");
+                    else
+                        return (s + wins + " (" + FlipZone(score / 10 + 1) + "-" + (score % 10 + 1) + ")");
 
                 default:
                     return "error";
@@ -81,6 +88,7 @@ namespace LeaderBot
 
         public static string LeaderbotCommand(string q)
         {
+            q = q.ToLower();
 
             if (q.Contains("penguin"))
                 return ("ᕕ(' >')ᕗᕕ(' >')ᕗᕕ(' >')ᕗ" + "\npls no bulli");
@@ -88,41 +96,34 @@ namespace LeaderBot
             if (q.Contains("​")) // gets rid of invisible space
                 q = q.Replace("​", null);
 
-            q = q.ToLower();
-
-            string str = q.Split(new[] { ' ' })[0];
-
-            if (str.StartsWith("help"))
+            if (q.StartsWith("help"))
             {
                 q = q.Replace("help ", null);
                 return HelpCommand(q);
             }
-            if (str.StartsWith("info"))
-                return ("ToofzBot Leaderbot v0.79. Type \".leaderbot help\" for help.");
+            if (q.StartsWith("info"))
+                return ("Leaderbot v0.80 (beta). Type \".leaderbot help\" for help.");
 
             //if (q.StartsWith("dove longplay"))
             //    return (DoveLongplay(true));
             //if (q.StartsWith("classic dove longplay"))
             //    return (DoveLongplay(false));
 
-            return (Search(q));
+            return (CheckRequest(q));
         }
 
 
         public static string HelpCommand(string q)
-        {
-            if (q.StartsWith("leaderboard"))
-                return ("Displays a leaderboard."
-                    + "\nType \".leaderbot <character>: <category>\" to see a leaderboard."
-                    + "\nAdd \"classic\" before the character name to see results without Amplified."
-                    + "\nAdd \"&<rank>\" to see the result starting at the specified offset.");
+        {  
             return ("Leaderbot is a bot which retrieves Crypt of the Necrodancer leaderboards."
-                + "\nUse \"search\", \"leaderboard\", or \"help <command>\" for more information."
-                + "\nPing Naymin#5067 for questions and bug reports.");
+                + "To displays a leaderboard type \".leaderbot <character>: <category>\"."
+                    + "\nAdd \"classic\" before the character name to see results without Amplified."
+                    + "\nAdd \"&<rank>\" after the category to see the results starting at the specified offset."
+                    + "\nPing Naymin#5067 for questions and bug reports.");
         }
 
 
-        public static string Search(string q)
+        public static string CheckRequest(string q)
         {
 
             if (!q.Contains(":"))
@@ -181,12 +182,18 @@ namespace LeaderBot
                     break;
                 }
             }
+
+            return DisplayLeaderboard(lb, offset);
+        }
+
+        public static string DisplayLeaderboard(Leaderboard lb, int offset)
+        {
             LeaderboardInfo req = Parser.lbInfo[lb];
 
             if (req.Id == null)
                 return ("Please enter a valid leaderboard.");
 
-            List<Entry> entries = Parser.ParseLeaderboard(req.Id, offset);
+            List<Entry> entries = Parser.ParseLeaderboard(req, offset);
             ApiSender.GetSteamNames(entries);
 
             if (entries.Count == 0)
@@ -202,11 +209,10 @@ namespace LeaderBot
                     str += "0";
 
                 str += en.Rank + ".   "
-                    + ScoreToString(en.Score, req.Leaderboard.Type, req.Leaderboard.Char)
+                    + ScoreToString(en.Score, req.Leaderboard.Type, req.Leaderboard.Char, req.Leaderboard.Amplified)
                     + "\t" + en.Personaname + "\n";
             }
             return str;
-
         }
 
         //public static string DoveLongplay(bool amplified)

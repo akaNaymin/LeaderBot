@@ -79,14 +79,20 @@ namespace LeaderBot
             return list;
         }
 
-        public static List<Entry> ParseLeaderboard(string id, int offset)
+        public static List<Entry> ParseLeaderboard(LeaderboardInfo lb, int offset)
         {
-            string xml = ApiSender.GetLeaderboard(id, offset);
+            string xml = ApiSender.GetLeaderboard(lb.Id, offset);
             List<Entry> list = new List<Entry>();
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xml);
 
-            foreach (XmlNode n in doc.DocumentElement.ChildNodes[8])
+            lbInfo[lb.Leaderboard].EntryCount = Convert.ToInt32(doc.DocumentElement.ChildNodes[3].InnerText);
+
+            int i = 7;
+            if (doc.DocumentElement.ChildNodes[6].Name == "nextRequestURL")
+                i = 8;
+
+                foreach (XmlNode n in doc.DocumentElement.ChildNodes[i])
             {
                     Entry en = new Entry();
 

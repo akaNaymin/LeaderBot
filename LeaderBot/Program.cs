@@ -5,6 +5,7 @@ using System.Text;
 using System.Net;
 using System.Globalization;
 using Discord;
+using Discord.Net.WebSockets;
 using Discord.Commands;
 
 namespace LeaderBot
@@ -29,7 +30,7 @@ namespace LeaderBot
 
             client = new DiscordClient(x =>
             {
-                x.AppName = "ToofzBot";
+                x.AppName = "LeaderBot";
                 x.LogLevel = LogSeverity.Info;
                 x.LogHandler = Log;
             });
